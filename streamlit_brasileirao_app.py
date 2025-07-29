@@ -4,6 +4,8 @@ import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 
+from prediction import predict_winner
+
 st.set_page_config(layout="wide")
 st.title("📊 Brasileirão Match Explorer")
 
@@ -259,10 +261,6 @@ if uploaded_file:
             ax4.legend()
             st.pyplot(fig4, use_container_width=False)
 
-        from sklearn.linear_model import LogisticRegression
-
-        # --- Basic prediction based on historical performance ---
-
         # Calculate simple features: win rate as home/away
         home_as_home_win_rate = (
             len(h2h_home_vs_away[h2h_home_vs_away["ResultLabel"] == "Win"])
@@ -298,49 +296,15 @@ if uploaded_file:
             h2h_away_vs_home["HG"].mean() if len(h2h_away_vs_home) > 0 else None
         )
 
-        # Create dummy training set (just for structure here)
-        X_train = pd.DataFrame(
-            [
-                [
-                    home_as_home_avg_scored,
-                    home_as_home_avg_conceded,
-                    home_as_away_avg_scored,
-                    home_as_away_avg_conceded,
-                ]
-            ],
-            columns=["home_gs", "home_gc", "away_gs", "away_gc"],
+        result = predict_winner(
+            df=df,
+            home_as_home_avg_scored=home_as_home_avg_scored,
+            home_as_home_avg_conceded=home_as_home_avg_conceded,
+            home_as_away_avg_scored=home_as_away_avg_scored,
+            home_as_away_avg_conceded=home_as_away_avg_conceded,
+            team_home=team_home,
+            team_away=team_away,
         )
-
-        y_train = ["H"]  # dummy label
-
-        # Fit a dummy model (for now this always returns the same thing)
-        model = LogisticRegression()
-        # Fake minimal training set with all result classes (H, D, A)
-        X_dummy = [[1, 1, 1, 1], [2, 2, 2, 2], [0.5, 0.5, 0.5, 0.5]]
-        y_dummy = ["H", "D", "A"]
-
-        model.fit(X_dummy, y_dummy)
-
-        # Predict based on features
-        X_pred = pd.DataFrame(
-            [
-                [
-                    home_as_home_avg_scored,
-                    home_as_home_avg_conceded,
-                    home_as_away_avg_scored,
-                    home_as_away_avg_conceded,
-                ]
-            ],
-            columns=X_train.columns,
-        )
-        pred = model.predict(X_pred)[0]
-
-        if pred == "H":
-            result = team_home
-        elif pred == "A":
-            result = team_away
-        else:
-            result = "Draw"
 
         st.subheader("🔮 Match Outcome Prediction")
         st.markdown(
