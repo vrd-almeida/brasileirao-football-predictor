@@ -2,6 +2,11 @@
 
 An interactive Streamlit app for exploring data from the top Brazilian football league (Brasileirão), visualizing team performance, and predicting match outcomes using simple statistical models.
 
+
+# Streamlit deployment
+
+https://appbrasileiraoapppy-amhabcoepkmui5pvwfkzye.streamlit.app/
+
 ---
 
 ## 📌 Project Summary
