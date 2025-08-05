@@ -102,6 +102,8 @@ if True:
                 ax3.set_xticks(x)
                 ax3.legend()
                 st.pyplot(fig3, use_container_width=False)
+            else:
+                st.info(f"There are no matches of {team} in the selected year.")
 
         ag_team = filtered_df_away["AG"].value_counts().sort_index()
         hg_opp = filtered_df_away["HG"].value_counts().sort_index()
@@ -129,6 +131,8 @@ if True:
                 ax4.set_xticks(x2)
                 ax4.legend()
                 st.pyplot(fig4, use_container_width=False)
+            else:
+                st.info(f"There are no matches of {team} in the selected year.")
 
     with tab2:
         st.header("⚔️ Head-to-Head Analysis")
@@ -210,6 +214,8 @@ if True:
                 ax3.set_xticks(x)
                 ax3.legend()
                 st.pyplot(fig3, use_container_width=False)
+            else:
+                st.info(f"There are no matches of {team_home} vs. {team_away}.")
 
         ag_team = h2h_away_vs_home["AG"].value_counts().sort_index()
         hg_opp = h2h_away_vs_home["HG"].value_counts().sort_index()
@@ -235,6 +241,8 @@ if True:
                 ax4.set_xticks(x2)
                 ax4.legend()
                 st.pyplot(fig4, use_container_width=False)
+            else:
+                st.info(f"There are no matches of {team_away} vs. {team_home}.")
 
         # Calculate simple features: win rate as home/away
         home_as_home_win_rate = (
