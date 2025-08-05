@@ -1,48 +1,18 @@
 import streamlit as st
-import pandas as pd
 import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 
 from prediction import predict_winner
+from data_manager import get_data_from_database
+
 
 st.set_page_config(layout="wide")
 st.title("📊 Brasileirão Match Explorer")
 
-# Upload CSV
-uploaded_file = st.file_uploader("Upload your Brasileirão CSV file", type=["csv"])
+df = get_data_from_database()
 
-if uploaded_file:
-    # Read CSV
-    df = pd.read_csv(
-        uploaded_file,
-        sep=";",
-        parse_dates=["Date"],
-        dayfirst=True,
-        dtype={
-            "Country": "string",
-            "League": "string",
-            "Season": "int64",
-            "Time": "string",
-            "Home": "string",
-            "Away": "string",
-            "HG": "Int64",
-            "AG": "Int64",
-            "Res": "string",
-            "PSCH": "float64",
-            "PSCD": "float64",
-            "PSCA": "float64",
-            "MaxCH": "float64",
-            "MaxCD": "float64",
-            "MaxCA": "float64",
-            "AvgCH": "float64",
-            "AvgCD": "float64",
-            "AvgCA": "float64",
-            "BFEC1": "float64",
-            "BFECX": "float64",
-            "BFECA": "float64",
-        },
-    )
+if True:
 
     # Create tabs
     tab1, tab2 = st.tabs(["📊 Team Overview", "⚔️ Head-to-Head"])
@@ -106,57 +76,59 @@ if uploaded_file:
         st.subheader("Goal Statistics")
         col3, col4 = st.columns(2)
 
+        hg = filtered_df_home["HG"].value_counts().sort_index()
+        ag = filtered_df_home["AG"].value_counts().sort_index()
         with col3:
-            fig3, ax3 = plt.subplots(figsize=(6, 3))
-            hg = filtered_df_home["HG"].value_counts().sort_index()
-            ag = filtered_df_home["AG"].value_counts().sort_index()
-            x = np.arange(0, max(hg.index.max(), ag.index.max()) + 1)
-            ax3.bar(
-                x - 0.2,
-                hg.reindex(x, fill_value=0),
-                width=0.4,
-                label="Team Goals (Home)",
-                color="blue",
-            )
-            ax3.bar(
-                x + 0.2,
-                ag.reindex(x, fill_value=0),
-                width=0.4,
-                label="Opponent Goals (Away)",
-                color="red",
-            )
-            ax3.set_title(f"{team} as Home")
-            ax3.set_xlabel("Goals")
-            ax3.set_ylabel("Matches")
-            ax3.set_xticks(x)
-            ax3.legend()
-            st.pyplot(fig3, use_container_width=False)
+            if len(hg) > 0 or len(ag) > 0:
+                fig3, ax3 = plt.subplots(figsize=(6, 3))
+                x = np.arange(0, max(hg.index.max(), ag.index.max()) + 1)
+                ax3.bar(
+                    x - 0.2,
+                    hg.reindex(x, fill_value=0),
+                    width=0.4,
+                    label="Team Goals (Home)",
+                    color="blue",
+                )
+                ax3.bar(
+                    x + 0.2,
+                    ag.reindex(x, fill_value=0),
+                    width=0.4,
+                    label="Opponent Goals (Away)",
+                    color="red",
+                )
+                ax3.set_title(f"{team} as Home")
+                ax3.set_xlabel("Goals")
+                ax3.set_ylabel("Matches")
+                ax3.set_xticks(x)
+                ax3.legend()
+                st.pyplot(fig3, use_container_width=False)
 
+        ag_team = filtered_df_away["AG"].value_counts().sort_index()
+        hg_opp = filtered_df_away["HG"].value_counts().sort_index()
         with col4:
-            fig4, ax4 = plt.subplots(figsize=(6, 3))
-            ag_team = filtered_df_away["AG"].value_counts().sort_index()
-            hg_opp = filtered_df_away["HG"].value_counts().sort_index()
-            x2 = np.arange(0, max(ag_team.index.max(), hg_opp.index.max()) + 1)
-            ax4.bar(
-                x2 - 0.2,
-                ag_team.reindex(x2, fill_value=0),
-                width=0.4,
-                label="Team Goals (Away)",
-                color="blue",
-            )
-            ax4.bar(
-                x2 + 0.2,
-                hg_opp.reindex(x2, fill_value=0),
-                width=0.4,
-                label="Opponent Goals (Home)",
-                color="red",
-            )
-            ax4.set_title(f"{team} as Away")
-            ax4.set_xlabel("Goals")
-            ax4.set_ylabel("Matches")
-            ax4.set_xticks(x2)
-            ax4.legend()
-            st.pyplot(fig4, use_container_width=False)
+            if len(ag_team) > 0 or len(hg_opp) > 0:
+                fig4, ax4 = plt.subplots(figsize=(6, 3))
+                x2 = np.arange(0, max(ag_team.index.max(), hg_opp.index.max()) + 1)
+                ax4.bar(
+                    x2 - 0.2,
+                    ag_team.reindex(x2, fill_value=0),
+                    width=0.4,
+                    label="Team Goals (Away)",
+                    color="blue",
+                )
+                ax4.bar(
+                    x2 + 0.2,
+                    hg_opp.reindex(x2, fill_value=0),
+                    width=0.4,
+                    label="Opponent Goals (Home)",
+                    color="red",
+                )
+                ax4.set_title(f"{team} as Away")
+                ax4.set_xlabel("Goals")
+                ax4.set_ylabel("Matches")
+                ax4.set_xticks(x2)
+                ax4.legend()
+                st.pyplot(fig4, use_container_width=False)
 
     with tab2:
         st.header("⚔️ Head-to-Head Analysis")
@@ -213,53 +185,56 @@ if uploaded_file:
         st.subheader("Goals Scored in Head-to-Head Matches")
         col5, col6 = st.columns(2)
 
+        hg = h2h_home_vs_away["HG"].value_counts().sort_index()
+        ag = h2h_home_vs_away["AG"].value_counts().sort_index()
         with col5:
-            fig3, ax3 = plt.subplots(figsize=(6, 3))
-            hg = h2h_home_vs_away["HG"].value_counts().sort_index()
-            ag = h2h_home_vs_away["AG"].value_counts().sort_index()
-            x = np.arange(0, max(hg.index.max(), ag.index.max()) + 1)
-            ax3.bar(
-                x - 0.2,
-                hg.reindex(x, fill_value=0),
-                width=0.4,
-                label=f"{team_home} Goals as Home",
-                color="blue",
-            )
-            ax3.bar(
-                x + 0.2,
-                ag.reindex(x, fill_value=0),
-                width=0.4,
-                label=f"{team_away} Goals as Away",
-                color="red",
-            )
-            ax3.set_title(f"{team_home} vs {team_away}")
-            ax3.set_xticks(x)
-            ax3.legend()
-            st.pyplot(fig3, use_container_width=False)
+            if len(hg) > 0 or len(ag) > 0:
+                fig3, ax3 = plt.subplots(figsize=(6, 3))
 
+                x = np.arange(0, max(hg.index.max(), ag.index.max()) + 1)
+                ax3.bar(
+                    x - 0.2,
+                    hg.reindex(x, fill_value=0),
+                    width=0.4,
+                    label=f"{team_home} Goals as Home",
+                    color="blue",
+                )
+                ax3.bar(
+                    x + 0.2,
+                    ag.reindex(x, fill_value=0),
+                    width=0.4,
+                    label=f"{team_away} Goals as Away",
+                    color="red",
+                )
+                ax3.set_title(f"{team_home} vs {team_away}")
+                ax3.set_xticks(x)
+                ax3.legend()
+                st.pyplot(fig3, use_container_width=False)
+
+        ag_team = h2h_away_vs_home["AG"].value_counts().sort_index()
+        hg_opp = h2h_away_vs_home["HG"].value_counts().sort_index()
         with col6:
-            fig4, ax4 = plt.subplots(figsize=(6, 3))
-            ag_team = h2h_away_vs_home["AG"].value_counts().sort_index()
-            hg_opp = h2h_away_vs_home["HG"].value_counts().sort_index()
-            x2 = np.arange(0, max(ag_team.index.max(), hg_opp.index.max()) + 1)
-            ax4.bar(
-                x2 - 0.2,
-                ag_team.reindex(x2, fill_value=0),
-                width=0.4,
-                label=f"{team_home} Goals as Away",
-                color="blue",
-            )
-            ax4.bar(
-                x2 + 0.2,
-                hg_opp.reindex(x2, fill_value=0),
-                width=0.4,
-                label=f"{team_away} Goals as Home",
-                color="red",
-            )
-            ax4.set_title(f"{team_away} vs {team_home}")
-            ax4.set_xticks(x2)
-            ax4.legend()
-            st.pyplot(fig4, use_container_width=False)
+            if len(ag_team) > 0 or len(hg_opp) > 0:
+                fig4, ax4 = plt.subplots(figsize=(6, 3))
+                x2 = np.arange(0, max(ag_team.index.max(), hg_opp.index.max()) + 1)
+                ax4.bar(
+                    x2 - 0.2,
+                    ag_team.reindex(x2, fill_value=0),
+                    width=0.4,
+                    label=f"{team_home} Goals as Away",
+                    color="blue",
+                )
+                ax4.bar(
+                    x2 + 0.2,
+                    hg_opp.reindex(x2, fill_value=0),
+                    width=0.4,
+                    label=f"{team_away} Goals as Home",
+                    color="red",
+                )
+                ax4.set_title(f"{team_away} vs {team_home}")
+                ax4.set_xticks(x2)
+                ax4.legend()
+                st.pyplot(fig4, use_container_width=False)
 
         # Calculate simple features: win rate as home/away
         home_as_home_win_rate = (
@@ -296,43 +271,45 @@ if uploaded_file:
             h2h_away_vs_home["HG"].mean() if len(h2h_away_vs_home) > 0 else None
         )
 
-        result = predict_winner(
-            df=df,
-            home_as_home_avg_scored=home_as_home_avg_scored,
-            home_as_home_avg_conceded=home_as_home_avg_conceded,
-            home_as_away_avg_scored=home_as_away_avg_scored,
-            home_as_away_avg_conceded=home_as_away_avg_conceded,
-            team_home=team_home,
-            team_away=team_away,
-        )
+        if team_home != team_away:
 
-        st.subheader("🔮 Match Outcome Prediction")
-        st.markdown(
-            f"**Prediction:** `{team_home}` vs `{team_away}` → **Predicted Result:** `{result}`"
-        )
+            result = predict_winner(
+                df=df,
+                home_as_home_avg_scored=home_as_home_avg_scored,
+                home_as_home_avg_conceded=home_as_home_avg_conceded,
+                home_as_away_avg_scored=home_as_away_avg_scored,
+                home_as_away_avg_conceded=home_as_away_avg_conceded,
+                team_home=team_home,
+                team_away=team_away,
+            )
 
-        # Optional: Show features
-        st.markdown("**Feature Snapshot:**")
-        st.json(
-            {
-                f"Nb of matches since 2012 {team_home} as Home vs {team_away} as Away": len(
-                    h2h_home_vs_away
-                ),
-                f"{team_home} as Home win rate": round(home_as_home_win_rate, 2),
-                f"{team_away} as Away win rate": round(away_as_away_win_rate, 2),
-                # f"{team_home} win rate as Away": round(home_as_away_win_rate, 2),
-                # f"{team_away} win rate as Home": None,
-                f"Draws {team_home} as Home vs {team_away} as Away": round(
-                    draws_home_vs_away, 2
-                ),
-                # f"Draws {team_away} as Home": None,
-                f"{team_home} as Home avg goals scored": round(
-                    home_as_home_avg_scored, 2
-                ),
-                # f"{team_home} as Home avg goals conceded": round(home_avg_conceded, 2),
-                f"{team_away} as Away avg goals scored": round(
-                    home_as_home_avg_conceded, 2
-                ),
-                # f"{team_away} as Away avg goals conceded": round(away_avg_conceded, 2)
-            }
-        )
+            st.subheader("🔮 Match Outcome Prediction")
+            st.markdown(
+                f"**Prediction:** `{team_home}` vs `{team_away}` → **Predicted Result:** `{result}`"
+            )
+
+            # Optional: Show features
+            st.markdown("**Feature Snapshot:**")
+            st.json(
+                {
+                    f"Nb of matches since 2012 {team_home} as Home vs {team_away} as Away": len(
+                        h2h_home_vs_away
+                    ),
+                    f"{team_home} as Home win rate": round(home_as_home_win_rate, 2),
+                    f"{team_away} as Away win rate": round(away_as_away_win_rate, 2),
+                    # f"{team_home} win rate as Away": round(home_as_away_win_rate, 2),
+                    # f"{team_away} win rate as Home": None,
+                    f"Draws {team_home} as Home vs {team_away} as Away": round(
+                        draws_home_vs_away, 2
+                    ),
+                    # f"Draws {team_away} as Home": None,
+                    f"{team_home} as Home avg goals scored": round(
+                        home_as_home_avg_scored, 2
+                    ),
+                    # f"{team_home} as Home avg goals conceded": round(home_avg_conceded, 2),
+                    f"{team_away} as Away avg goals scored": round(
+                        home_as_home_avg_conceded, 2
+                    ),
+                    # f"{team_away} as Away avg goals conceded": round(away_avg_conceded, 2)
+                }
+            )
