@@ -4,5 +4,4 @@ matplotlib~=3.10.3
 seaborn~=0.13.2
 scikit-learn~=1.7.1
 streamlit~=1.47.1
-SQLAlchemy~=2.0.42
-psycopg2-binary~=2.9.10
+supabase~=2.18.0
