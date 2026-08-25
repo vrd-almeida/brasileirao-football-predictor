@@ -2,6 +2,7 @@ import streamlit as st
 import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
 from prediction import predict_winner
 from data_manager import get_data_from_database
@@ -11,6 +12,7 @@ st.set_page_config(layout="wide")
 st.title("📊 Brasileirão Match Explorer")
 
 df = get_data_from_database()
+
 
 if True:
 
@@ -29,17 +31,15 @@ if True:
         if team != "All":
             filtered_df_home = filtered_df_home[filtered_df_home["Home"] == team]
             filtered_df_away = filtered_df_away[filtered_df_away["Away"] == team]
-            home_result_map = {"H": "Win", "D": "Draw", "A": "Loss"}
+            result_map = {"H": "Win", "D": "Draw", "A": "Loss"}
             away_result_map = {"H": "Loss", "D": "Draw", "A": "Win"}
-            filtered_df_home["ResultLabel"] = filtered_df_home["Res"].map(
-                home_result_map
-            )
+            filtered_df_home["ResultLabel"] = filtered_df_home["Res"].map(result_map)
             filtered_df_away["ResultLabel"] = filtered_df_away["Res"].map(
                 away_result_map
             )
 
         st.subheader(f"Matches in {season}")
-        st.dataframe(filtered_df_home)
+        st.dataframe(filtered_df_home, hide_index=True)
 
         col1, col2 = st.columns(2)
 
@@ -139,9 +139,9 @@ if True:
         teams = sorted(set(df["Home"].unique()) | set(df["Away"].unique()))
         col1, col2 = st.columns(2)
         with col1:
-            team_home = st.selectbox("Select Home Team", teams, key="team_home")
+            team_home: str = st.selectbox("Select Home Team", teams, key="team_home")
         with col2:
-            team_away = st.selectbox("Select Away Team", teams, key="team_away")
+            team_away: str = st.selectbox("Select Away Team", teams, key="team_away")
 
         head_to_head = df[
             ((df["Home"] == team_home) & (df["Away"] == team_away))
@@ -149,16 +149,15 @@ if True:
         ].copy()
 
         st.subheader(f"Matches between {team_home} and {team_away} (since 2012)")
-        st.dataframe(head_to_head)
+        st.dataframe(head_to_head, hide_index=True)
 
-        home_result_map = {"H": "Win", "D": "Draw", "A": "Loss"}
-        away_result_map = {"H": "Loss", "D": "Draw", "A": "Win"}
+        result_map = {"H": "Win", "D": "Draw", "A": "Loss"}
 
         h2h_home_vs_away = head_to_head[head_to_head["Home"] == team_home].copy()
         h2h_away_vs_home = head_to_head[head_to_head["Away"] == team_home].copy()
 
-        h2h_home_vs_away["ResultLabel"] = h2h_home_vs_away["Res"].map(home_result_map)
-        h2h_away_vs_home["ResultLabel"] = h2h_away_vs_home["Res"].map(away_result_map)
+        h2h_home_vs_away["ResultLabel"] = h2h_home_vs_away["Res"].map(result_map)
+        h2h_away_vs_home["ResultLabel"] = h2h_away_vs_home["Res"].map(result_map)
 
         col3, col4 = st.columns(2)
 
@@ -211,7 +210,12 @@ if True:
                     color="red",
                 )
                 ax3.set_title(f"{team_home} vs {team_away}")
+                # Axis labels
+                ax3.set_xlabel("Goals")
+                ax3.set_ylabel("Number of Matches")
                 ax3.set_xticks(x)
+                # Y-axis integers only
+                ax3.yaxis.set_major_locator(MaxNLocator(integer=True))
                 ax3.legend()
                 st.pyplot(fig3, use_container_width=False)
             else:
@@ -238,7 +242,12 @@ if True:
                     color="red",
                 )
                 ax4.set_title(f"{team_away} vs {team_home}")
+                # Axis labels
+                ax4.set_xlabel("Goals")
+                ax4.set_ylabel("Number of Matches")
                 ax4.set_xticks(x2)
+                # Y-axis integers only
+                ax4.yaxis.set_major_locator(MaxNLocator(integer=True))
                 ax4.legend()
                 st.pyplot(fig4, use_container_width=False)
             else:

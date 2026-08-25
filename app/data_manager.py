@@ -1,17 +1,5 @@
-import os
 import pandas as pd
-from supabase import create_client, Client
-
-
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-
-if SUPABASE_URL is None or SUPABASE_KEY is None:
-    raise ValueError(
-        "❌ SUPABASE_URL and SUPABASE_KEY must be defined as environment variables."
-    )
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+from db_config import supabase_client
 
 
 def get_data_from_database() -> pd.DataFrame:
@@ -23,7 +11,7 @@ def get_data_from_database() -> pd.DataFrame:
 
     while True:
         response = (
-            supabase.table("matches")
+            supabase_client.table("matches")
             .select("*")
             .range(offset, offset + step - 1)
             .execute()
@@ -37,10 +25,18 @@ def get_data_from_database() -> pd.DataFrame:
 
         offset += step
 
-    df = pd.DataFrame(all_data)
-    df.set_index("id", inplace=True)
+    if len(all_data) == 0:
+        df = pd.DataFrame(
+            columns=list(expected_columns), index=pd.Index([], name="id", dtype=str)
+        )
+    else:
+        df = pd.DataFrame(all_data)
+        df["Date"] = pd.to_datetime(df["Date"]).dt.date
+        df.set_index("id", inplace=True)
+        df.sort_index(inplace=True)
+
     validate_dataframe(df)
-    df.sort_index(inplace=True)
+
     return df
 
 
