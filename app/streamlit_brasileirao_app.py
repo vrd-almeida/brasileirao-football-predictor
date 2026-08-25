@@ -45,7 +45,7 @@ if True:
 
         with col1:
             st.subheader("Match Result Distribution - Home")
-            fig1, ax1 = plt.subplots(figsize=(4, 3))
+            fig1, ax1 = plt.subplots(figsize=(5, 3))
             if team != "All" and "ResultLabel" in filtered_df_home.columns:
                 sns.countplot(
                     x="ResultLabel",
@@ -60,7 +60,7 @@ if True:
 
         with col2:
             st.subheader("Match Result Distribution - Away")
-            fig2, ax2 = plt.subplots(figsize=(4, 3))
+            fig2, ax2 = plt.subplots(figsize=(5, 3))
             if team != "All" and "ResultLabel" in filtered_df_away.columns:
                 sns.countplot(
                     x="ResultLabel",
@@ -80,7 +80,7 @@ if True:
         ag = filtered_df_home["AG"].value_counts().sort_index()
         with col3:
             if len(hg) > 0 or len(ag) > 0:
-                fig3, ax3 = plt.subplots(figsize=(6, 3))
+                fig3, ax3 = plt.subplots(figsize=(5, 3))
                 x = np.arange(0, max(hg.index.max(), ag.index.max()) + 1)
                 ax3.bar(
                     x - 0.2,
@@ -109,7 +109,7 @@ if True:
         hg_opp = filtered_df_away["HG"].value_counts().sort_index()
         with col4:
             if len(ag_team) > 0 or len(hg_opp) > 0:
-                fig4, ax4 = plt.subplots(figsize=(6, 3))
+                fig4, ax4 = plt.subplots(figsize=(5, 3))
                 x2 = np.arange(0, max(ag_team.index.max(), hg_opp.index.max()) + 1)
                 ax4.bar(
                     x2 - 0.2,
@@ -163,27 +163,39 @@ if True:
 
         with col3:
             st.subheader(f"{team_home} vs {team_away}")
-            fig1, ax1 = plt.subplots(figsize=(4, 3))
-            sns.countplot(
-                x="ResultLabel",
-                data=h2h_home_vs_away,
-                order=["Win", "Draw", "Loss"],
-                ax=ax1,
-            )
-            ax1.set_title(f"Results for {team_home}")
-            st.pyplot(fig1, use_container_width=False)
+            if len(h2h_home_vs_away) > 0:
+                fig1, ax1 = plt.subplots(figsize=(5, 3))
+                sns.countplot(
+                    x="ResultLabel",
+                    data=h2h_home_vs_away,
+                    order=["Win", "Draw", "Loss"],
+                    ax=ax1,
+                )
+                ax1.set_xlabel(None)
+                ax1.set_ylabel("Number of Matches")
+                ax1.yaxis.set_major_locator(MaxNLocator(integer=True))
+                ax1.set_title(f"Results for {team_home}")
+                st.pyplot(fig1, use_container_width=False)
+            else:
+                st.info(f"There are no matches of {team_home} vs. {team_away}.")
 
         with col4:
             st.subheader(f"{team_away} vs {team_home}")
-            fig2, ax2 = plt.subplots(figsize=(4, 3))
-            sns.countplot(
-                x="ResultLabel",
-                data=h2h_away_vs_home,
-                order=["Win", "Draw", "Loss"],
-                ax=ax2,
-            )
-            ax2.set_title(f"Results for {team_away}")
-            st.pyplot(fig2, use_container_width=False)
+            if len(h2h_away_vs_home) > 0:
+                fig2, ax2 = plt.subplots(figsize=(5, 3))
+                sns.countplot(
+                    x="ResultLabel",
+                    data=h2h_away_vs_home,
+                    order=["Win", "Draw", "Loss"],
+                    ax=ax2,
+                )
+                ax2.set_xlabel("")
+                ax2.set_ylabel("Number of Matches")
+                ax2.yaxis.set_major_locator(MaxNLocator(integer=True))
+                ax2.set_title(f"Results for {team_away}")
+                st.pyplot(fig2, use_container_width=False)
+            else:
+                st.info(f"There are no matches of {team_away} vs. {team_home}.")
 
         st.subheader("Goals Scored in Head-to-Head Matches")
         col5, col6 = st.columns(2)
@@ -192,7 +204,7 @@ if True:
         ag = h2h_home_vs_away["AG"].value_counts().sort_index()
         with col5:
             if len(hg) > 0 or len(ag) > 0:
-                fig3, ax3 = plt.subplots(figsize=(6, 3))
+                fig3, ax3 = plt.subplots(figsize=(5, 3))
 
                 x = np.arange(0, max(hg.index.max(), ag.index.max()) + 1)
                 ax3.bar(
@@ -225,7 +237,7 @@ if True:
         hg_opp = h2h_away_vs_home["HG"].value_counts().sort_index()
         with col6:
             if len(ag_team) > 0 or len(hg_opp) > 0:
-                fig4, ax4 = plt.subplots(figsize=(6, 3))
+                fig4, ax4 = plt.subplots(figsize=(5, 3))
                 x2 = np.arange(0, max(ag_team.index.max(), hg_opp.index.max()) + 1)
                 ax4.bar(
                     x2 - 0.2,
@@ -290,15 +302,18 @@ if True:
 
         if team_home != team_away:
 
-            result = predict_winner(
-                df=df,
-                home_as_home_avg_scored=home_as_home_avg_scored,
-                home_as_home_avg_conceded=home_as_home_avg_conceded,
-                home_as_away_avg_scored=home_as_away_avg_scored,
-                home_as_away_avg_conceded=home_as_away_avg_conceded,
-                team_home=team_home,
-                team_away=team_away,
-            )
+            if len(df) > 0:
+                result = predict_winner(
+                    df=df,
+                    home_as_home_avg_scored=home_as_home_avg_scored,
+                    home_as_home_avg_conceded=home_as_home_avg_conceded,
+                    home_as_away_avg_scored=home_as_away_avg_scored,
+                    home_as_away_avg_conceded=home_as_away_avg_conceded,
+                    team_home=team_home,
+                    team_away=team_away,
+                )
+            else:
+                result = "Missing input stats for predicsfddfsdsftion"
 
             st.subheader("🔮 Match Outcome Prediction")
             st.markdown(
@@ -312,21 +327,30 @@ if True:
                     f"Nb of matches since 2012 {team_home} as Home vs {team_away} as Away": len(
                         h2h_home_vs_away
                     ),
-                    f"{team_home} as Home win rate": round(home_as_home_win_rate, 2),
-                    f"{team_away} as Away win rate": round(away_as_away_win_rate, 2),
-                    # f"{team_home} win rate as Away": round(home_as_away_win_rate, 2),
-                    # f"{team_away} win rate as Home": None,
-                    f"Draws {team_home} as Home vs {team_away} as Away": round(
-                        draws_home_vs_away, 2
+                    f"{team_home} win rate": (
+                        None
+                        if home_as_home_win_rate is None
+                        else f"{100 * round(home_as_home_win_rate, 2)}%"
                     ),
-                    # f"Draws {team_away} as Home": None,
-                    f"{team_home} as Home avg goals scored": round(
-                        home_as_home_avg_scored, 2
+                    f"{team_away} win rate": (
+                        None
+                        if away_as_away_win_rate is None
+                        else f"{100 * round(away_as_away_win_rate, 2)}%"
                     ),
-                    # f"{team_home} as Home avg goals conceded": round(home_avg_conceded, 2),
-                    f"{team_away} as Away avg goals scored": round(
-                        home_as_home_avg_conceded, 2
+                    f"Draws rate": (
+                        None
+                        if draws_home_vs_away is None
+                        else f"{100 * round(draws_home_vs_away, 2)}%"
                     ),
-                    # f"{team_away} as Away avg goals conceded": round(away_avg_conceded, 2)
+                    f"{team_home} avg goals scored": (
+                        None
+                        if home_as_home_avg_scored is None
+                        else round(home_as_home_avg_scored, 2)
+                    ),
+                    f"{team_away} avg goals scored": (
+                        None
+                        if home_as_home_avg_conceded is None
+                        else round(home_as_home_avg_conceded, 2)
+                    ),
                 }
             )
