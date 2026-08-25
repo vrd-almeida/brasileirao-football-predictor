@@ -31,6 +31,7 @@ def get_data_from_database() -> pd.DataFrame:
         )
     else:
         df = pd.DataFrame(all_data)
+        df["Date"] = pd.to_datetime(df["Date"]).dt.date
         df.set_index("id", inplace=True)
         df.sort_index(inplace=True)
 
